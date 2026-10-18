@@ -36,9 +36,15 @@ def scalogram(times, values, min_period=0.5, max_period=48.0, voices=8, max_cols
     col_secs = t0 + np.arange(0, n, step) * 60.0
     times_iso = [datetime.fromtimestamp(s, tz=timezone.utc).isoformat() for s in col_secs]
 
+    col_hours = (col_secs - t0) / 3600.0
+    span = col_hours[-1] if len(col_hours) else 0.0
+    edge_dist = np.minimum(col_hours, span - col_hours)
+    coi = edge_dist / (np.sqrt(2.0) * central)
+
     return {
         "periods": [round(p, 4) for p in periods.tolist()],
         "times": times_iso,
         "power": power.tolist(),
         "band": list(BAND),
+        "coi": [round(c, 4) for c in coi.tolist()],
     }

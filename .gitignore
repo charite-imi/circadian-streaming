@@ -54,4 +54,8 @@ light-ceiling.html
 *.phi.csv
 /patient-data/
 /data/
-/evaluation
+
+# evaluation/: keep the Python analysis SCRIPTS in the repo; ignore only the bulky,
+# regenerable data snapshots. (evaluation/figures/, .venv/ and __pycache__/ are already
+# ignored above. The root /data/ rule does NOT match evaluation/data/, so list it here.)
+/evaluation/data/

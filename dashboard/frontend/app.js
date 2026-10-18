@@ -224,6 +224,29 @@ function renderMedian(o, color) {
   Plotly.react("median", [line(x, y, color, { gl: true })], layout, CONFIG);
 }
 
+// Cone-of-influence overlay: dim the region above the COI boundary (long periods near the window
+// edges), where the wavelet result is edge-contaminated and must not be trusted. The boundary is a
+// crisp dotted line so clinicians can read exactly where results become reliable.
+function coiTraces(sc) {
+  if (!sc.coi || !sc.coi.length) return [];
+  const ymax = sc.periods[sc.periods.length - 1];
+  const xBack = sc.times.slice().reverse();
+  return [
+    {
+      type: "scatter", mode: "lines",
+      x: sc.times.concat(xBack),
+      y: sc.coi.map((c) => Math.min(c, ymax)).concat(sc.times.map(() => ymax)),
+      fill: "toself", fillcolor: "rgba(8,11,20,0.62)",
+      line: { width: 0 }, hoverinfo: "skip", showlegend: false,
+    },
+    {
+      type: "scatter", mode: "lines", x: sc.times, y: sc.coi,
+      line: { color: "rgba(255,255,255,0.82)", width: 1.2, dash: "dot" },
+      hoverinfo: "skip", showlegend: false,
+    },
+  ];
+}
+
 function renderScalogram(sc) {
   if (!sc || !sc.periods.length) { Plotly.purge("scalogram"); return; }
   const trace = {
@@ -242,8 +265,14 @@ function renderScalogram(sc) {
       { type: "line", xref: "paper", yref: "y", x0: 0, x1: 1, y0: sc.band[0], y1: sc.band[0], line: { color: "#e11d48", width: 1, dash: "dot" } },
       { type: "line", xref: "paper", yref: "y", x0: 0, x1: 1, y0: sc.band[1], y1: sc.band[1], line: { color: "#e11d48", width: 1, dash: "dot" } },
     ],
+    annotations: [
+      { xref: "paper", yref: "paper", x: 0.012, y: 0.98, xanchor: "left", yanchor: "top",
+        text: "shaded = cone of influence (edge-affected — not reliable)", showarrow: false,
+        font: { size: 10, color: "rgba(255,255,255,0.92)" },
+        bgcolor: "rgba(8,11,20,0.55)", borderpad: 3 },
+    ],
   });
-  Plotly.react("scalogram", [trace], layout, CONFIG);
+  Plotly.react("scalogram", [trace].concat(coiTraces(sc)), layout, CONFIG);
 }
 
 function renderLightTherapy(lt) {
