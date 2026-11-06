@@ -9,8 +9,9 @@ param(
   [int]$MaxWaitMinutes = 25
 )
 $ErrorActionPreference = "Stop"
-$root   = "E:\IT Projects\BachelorStreams\project"
-$java   = "C:\Users\user\scoop\apps\temurin17-jdk\current\bin\java.exe"
+$root   = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$scoopJava = "$env:USERPROFILE\scoop\apps\temurin17-jdk\current\bin\java.exe"
+$java   = if ($env:JAVA17_HOME) { "$env:JAVA17_HOME\bin\java.exe" } elseif (Test-Path $scoopJava) { $scoopJava } else { "java" }
 $genJar = "$root\generator\target\circadian-generator.jar"
 $evPy   = "$root\evaluation\.venv\Scripts\python.exe"
 $topic  = "vitals-raw"
@@ -44,7 +45,10 @@ for ($i = 0; $i -lt 20; $i++) {
 docker exec circadian-kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic $topic --partitions 1 --replication-factor 1 2>$null | Out-Null
 
 # 3) truncate DB -------------------------------------------------------------
-Write-Host "[3/6] truncate Postgres tables"
+Write-Host "[3/6] ensure schema, truncate Postgres tables"
+# sql/init only runs when the data volume is first created, so an older or empty volume can lack
+# tables. The schema is all IF NOT EXISTS, which makes re-applying it safe.
+docker exec -e PGOPTIONS=-cclient_min_messages=warning circadian-postgres psql -q -v ON_ERROR_STOP=1 -U circadian -d circadian -f /docker-entrypoint-initdb.d/01_schema.sql | Out-Null
 PSql "TRUNCATE agg_1min, circadian_metrics, ground_truth_params, ground_truth_events, dead_letter; DELETE FROM experiment_runs;" | Out-Null
 
 # 4) generate (ground truth + stream to Kafka) -------------------------------
@@ -57,7 +61,7 @@ $genStart = Get-Date
 $prevEA = $ErrorActionPreference; $ErrorActionPreference = "Continue"
 & $java -jar $genJar --scenario "$root\scenarios\$Scenario.yaml" --seed $Seed `
     --bootstrap localhost:9092 --topic $topic `
-    --jdbc-url jdbc:postgresql://localhost:5544/circadian > $genLog 2>&1
+    --jdbc-url jdbc:postgresql://localhost:5545/circadian > $genLog 2>&1
 $ErrorActionPreference = $prevEA
 $genSeconds = [math]::Round(((Get-Date) - $genStart).TotalSeconds, 1)
 Get-Content $genLog | Select-String "Produced|ground truth" | ForEach-Object { Write-Host "   $_" }
