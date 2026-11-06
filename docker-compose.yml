@@ -5,13 +5,13 @@
 #
 # Host processes (generator, api) connect to:
 #   Kafka     -> localhost:9092
-#   Postgres  -> localhost:5544   (db=circadian user=circadian pass=circadian)
-#                (5544 not 5432: the default Postgres port commonly collides with a host-native Postgres; the container's internal port stays 5432)
+#   Postgres  -> localhost:5545   (db=circadian user=circadian pass=circadian)
+#                (5545 not 5432: the default Postgres port commonly collides with a host-native Postgres; the container's internal port stays 5432)
 #   Grafana   -> http://localhost:3000  (admin/admin)
 #
 # The pipeline runs INSIDE the Flink cluster (no longer `java -jar`). After `mvn package`, submit it:
 #   docker compose exec jobmanager flink run -d /jars/circadian-pipeline.jar
-#   Flink Web UI -> http://localhost:8081
+#   Flink Web UI -> http://localhost:18081
 # On the compose network the pipeline reaches services as kafka:19092 and postgres:5432.
 #
 # Bring up:  docker compose up -d        Tear down (keep data):  docker compose down

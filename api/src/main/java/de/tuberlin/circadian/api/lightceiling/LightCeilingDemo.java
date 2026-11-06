@@ -43,7 +43,7 @@ public final class LightCeilingDemo {
         Map<String, String> opt = parseArgs(args);
         String signal = opt.getOrDefault("signal", "HR");
         Path out = Path.of(opt.getOrDefault("out", "light-ceiling.html"));
-        String jdbcUrl = opt.getOrDefault("jdbc-url", "jdbc:postgresql://localhost:5544/circadian");
+        String jdbcUrl = opt.getOrDefault("jdbc-url", "jdbc:postgresql://localhost:5545/circadian");
         String jdbcUser = opt.getOrDefault("jdbc-user", "circadian");
         String jdbcPassword = opt.getOrDefault("jdbc-password", "circadian");
 

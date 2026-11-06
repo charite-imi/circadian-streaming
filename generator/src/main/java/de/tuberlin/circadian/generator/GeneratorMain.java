@@ -64,7 +64,7 @@ public final class GeneratorMain implements Callable<Integer> {
     @Option(names = "--topic", defaultValue = "vitals-raw", description = "Kafka topic (default: ${DEFAULT-VALUE}).")
     String topic;
 
-    @Option(names = "--jdbc-url", defaultValue = "jdbc:postgresql://localhost:5544/circadian", description = "Postgres JDBC URL for ground truth (default: ${DEFAULT-VALUE}).")
+    @Option(names = "--jdbc-url", defaultValue = "jdbc:postgresql://localhost:5545/circadian", description = "Postgres JDBC URL for ground truth (default: ${DEFAULT-VALUE}).")
     String jdbcUrl;
 
     @Option(names = "--jdbc-user", defaultValue = "circadian", description = "Postgres user.")
