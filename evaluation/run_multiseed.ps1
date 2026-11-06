@@ -10,7 +10,7 @@ param(
   [int]$MaxWaitMinutes = 25
 )
 Set-ExecutionPolicy Bypass -Scope Process -Force
-$base = "E:\IT Projects\BachelorStreams\project\evaluation"
+$base = $PSScriptRoot
 
 foreach ($seed in $Seeds) {
   foreach ($scen in $Scenarios) {

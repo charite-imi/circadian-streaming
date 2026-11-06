@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import psycopg2
 import pywt
 
-DSN = dict(host=os.getenv("PGHOST", "localhost"), port=int(os.getenv("PGPORT", "5544")),
+DSN = dict(host=os.getenv("PGHOST", "localhost"), port=int(os.getenv("PGPORT", "5545")),
            dbname="circadian", user="circadian", password="circadian")
 DT = 1.0 / 60.0
 WAVELET = "cmor2.0-0.9549"

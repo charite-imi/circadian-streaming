@@ -97,7 +97,7 @@ public final class PipelineConfig implements Serializable {
                 env("KAFKA_BOOTSTRAP", "localhost:9092"),
                 env("KAFKA_TOPIC", "vitals-raw"),
                 env("KAFKA_GROUP", "circadian-pipeline"),
-                env("JDBC_URL", "jdbc:postgresql://localhost:5544/circadian"),
+                env("JDBC_URL", "jdbc:postgresql://localhost:5545/circadian"),
                 env("JDBC_USER", "circadian"),
                 env("JDBC_PASSWORD", "circadian"),
                 envInt("WINDOW_SECONDS", 60),

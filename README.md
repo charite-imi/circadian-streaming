@@ -27,7 +27,31 @@ SyntheticSource ─▶ Kafka (vitals-raw) ─▶ [ Flink job ] ─▶ PostgreSQL
 | `pipeline`  | Flink job: stage wiring + Postgres sink                     | Stages 1–3: validation + dead-letter, 1-min median/SD, sliding Cosinor/CWT/IS-IV → `circadian_metrics` |
 | `api`       | Thin REST API over Postgres                                 | light-ceiling demonstrator (Phase 4); REST endpoints pending (Phase 3) |
 
-## Prerequisites
+## Quick start (macOS / Linux)
+
+Needs only **Docker** and **Python 3.11–3.13**. The build and the generator run in a JDK 17 container,
+so no host JDK or Maven is required.
+
+```bash
+./quickstart.sh
+```
+
+This builds the jars, starts the stack, creates the Python environments, runs the `demo_decay`
+scenario (2 patients, 14 simulated days) and then serves the dashboard. Pass another scenario with
+`./quickstart.sh baseline`, or add `--no-dashboard` to skip serving it. To run further scenarios
+against a running stack, use `evaluation/run_scenario.sh <scenario>`.
+
+| Service | Address | Notes |
+|---|---|---|
+| Custom dashboard | http://localhost:8000 | scalogram, cone of influence, lighting therapy |
+| Grafana | http://localhost:3000 | admin/admin; set the time range to the simulated dates (June 2026 by default) |
+| Flink Web UI | http://localhost:18081 | throughput, backpressure, checkpoints |
+| Kafka | `localhost:9092` | topic `vitals-raw` |
+| Postgres | `localhost:5545` | db/user/password `circadian` |
+
+Stop the stack and keep the data with `docker compose down`. Add `-v` to also delete the data.
+
+## Prerequisites (manual setup)
 
 - **JDK 17** (Flink 2.2 does not support newer JDKs). Point `JAVA_HOME` at it to build/run; the
   system default JDK is left untouched. (The helper scripts auto-detect a scoop `temurin17-jdk` or
@@ -35,10 +59,13 @@ SyntheticSource ─▶ Kafka (vitals-raw) ─▶ [ Flink job ] ─▶ PostgreSQL
 - **Maven 3.9+**.
 - **Docker** (Kafka + Postgres + Grafana via Compose).
 
-## Quick start
+## Manual setup (Windows PowerShell)
+
+`evaluation\run_scenario.ps1 -Scenario <scenario>` runs steps 3–4 for you, including the topic and
+database reset. It needs `evaluation\.venv` for its snapshot step.
 
 ```powershell
-# 1. Infra + Flink cluster (Kafka :9092, Postgres :5544, Grafana :3000, Flink Web UI :8081)
+# 1. Infra + Flink cluster (Kafka :9092, Postgres :5545, Grafana :3000, Flink Web UI :18081)
 docker compose up -d
 
 # 2. Build everything (requires JDK 17 + Maven 3.9+)
@@ -50,11 +77,11 @@ java -jar generator/target/circadian-generator.jar --scenario scenarios/amplitud
 
 # 4. Submit the pipeline to the Flink cluster (runs on the cluster, not this shell).
 docker compose exec jobmanager flink run -d /jars/circadian-pipeline.jar
-#    Watch it: Flink Web UI at http://localhost:8081 (job graph, checkpoints, backpressure, watermarks).
+#    Watch it: Flink Web UI at http://localhost:18081 (job graph, checkpoints, backpressure, watermarks).
 #    Cancel it there, or:  docker compose exec jobmanager flink cancel <jobId>
 ```
 
-> The generator and API run on the host and reach Kafka/Postgres at `localhost:9092` / `localhost:5544`.
+> The generator and API run on the host and reach Kafka/Postgres at `localhost:9092` / `localhost:5545`.
 > The **pipeline runs inside the cluster** and reaches them as `kafka:19092` / `postgres:5432` (the
 > compose network). It is no longer run via `java -jar` — Flink core is `provided` by the cluster, so
 > the job jar is a slim artifact submitted with `flink run`.

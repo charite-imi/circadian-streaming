@@ -13,13 +13,18 @@ param(
   [int]$MaxWaitMinutes = 25
 )
 $ErrorActionPreference = "Stop"
-$root   = "E:\IT Projects\BachelorStreams\project"
-$java   = "C:\Users\user\scoop\apps\temurin17-jdk\current\bin\java.exe"
+$root   = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$scoopJava = "$env:USERPROFILE\scoop\apps\temurin17-jdk\current\bin\java.exe"
+$java   = if ($env:JAVA17_HOME) { "$env:JAVA17_HOME\bin\java.exe" } elseif (Test-Path $scoopJava) { $scoopJava } else { "java" }
 $genJar = "$root\generator\target\circadian-generator.jar"
 $topic  = "vitals-raw"
 $jmApi  = "http://localhost:18081"
 $csv    = "$root\evaluation\data\loadsweep.csv"
 function PSql($sql) { (docker exec circadian-postgres psql -U circadian -d circadian -tAc $sql).Trim() }
+
+# sql/init only runs when the data volume is first created, so an older or empty volume can lack
+# tables. The schema is all IF NOT EXISTS, which makes re-applying it safe.
+docker exec -e PGOPTIONS=-cclient_min_messages=warning circadian-postgres psql -q -v ON_ERROR_STOP=1 -U circadian -d circadian -f /docker-entrypoint-initdb.d/01_schema.sql | Out-Null
 
 $patientList = $Patients.Split(',') | ForEach-Object { [int]$_.Trim() }
 New-Item -ItemType Directory -Force "$root\evaluation\data" | Out-Null
