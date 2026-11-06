@@ -221,6 +221,9 @@ function renderMedian(o, color) {
     shapes: normalBand(o.signal).concat(nightShapes(t0, t1)).concat(gtShapes(o.ground_truth)),
     annotations: normalAnnotation(o.signal).concat(gtAnnotations(o.ground_truth)),
   });
+  // Pin the axis to the data. Autorange would also fit shapes and labels, and a scenario's far-future
+  // "never recovers" end date would squash the chart.
+  layout.xaxis.range = [x[0], x[x.length - 1]];
   Plotly.react("median", [line(x, y, color, { gl: true })], layout, CONFIG);
 }
 
